@@ -52,7 +52,7 @@ def ortho_xr(swath_ds: xr.Dataset, GLT_nodata_value: int = GLT_NODATA_VALUE, fil
     lon, lat = get_pixel_center_coords(swath_ds)  # Reorder this function to make sense in case of multiple variables
 
     # Apply GLT to elevation
-    elev_ds = apply_GLT(swath_ds["elev"].data, GLT_array)
+    elev_ds = apply_GLT(swath_ds["elev"].data, GLT_array, fill_value=fill_value)
 
     # Delete glt_ds - no longer needed
     del GLT_array

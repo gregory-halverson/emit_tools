@@ -59,5 +59,6 @@ def apply_GLT(
 
     # Apply GLT to swath_array
     ortho_array[valid_GLT, :] = swath_array[zero_based_indices[valid_GLT, 1], zero_based_indices[valid_GLT, 0], :]
+    ortho_array = np.where(ortho_array == -9999, np.nan, ortho_array)
 
     return ortho_array

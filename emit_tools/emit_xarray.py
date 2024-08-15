@@ -19,13 +19,19 @@ from os.path import join, expanduser
 from .constants import *
 from .ortho_xr import ortho_xr
 
-def emit_xarray(filepath: str, ortho: bool = False, qmask=None, unpacked_bmask=None, engine: str = ENGINE):
+def emit_xarray(
+        filepath: str, 
+        ortho: bool = False, 
+        qmask: np.ndarray = None, 
+        unpacked_bmask: np.ndarray = None, 
+        fill_value: int = FILL_VALUE,
+        engine: str = ENGINE):
     """
-    This function utilizes other functions in this module to streamline opening an EMIT dataset as an xarray.Dataset.
+    Load an EMIT NetCDF dataset as an xarray.Dataset.
 
     Parameters:
     filepath: a filepath to an EMIT netCDF file
-    ortho: True or False, whether to orthorectify the dataset or leave in crosstrack/downtrack coordinates.
+    ortho: hyperspectral cube is left is swath spatial dimensions if `ortho` is False and orthorectified to a grid using the included GLT if True
     qmask: a numpy array output from the quality_mask function used to mask pixels based on quality flags selected in that function. Any non-orthorectified array with the proper crosstrack and downtrack dimensions can also be used.
     unpacked_bmask: a numpy array from  the band_mask function that can be used to mask band-specific pixels that have been interpolated.
 
@@ -45,7 +51,9 @@ def emit_xarray(filepath: str, ortho: bool = False, qmask=None, unpacked_bmask=N
     # Read in Data as Xarray Datasets
     wvl_group = None
 
+    # load swath dataset to xarray
     ds = xr.open_dataset(filepath, engine=engine)
+    # load location dataset to xarray
     loc = xr.open_dataset(filepath, engine=engine, group="location")
 
     # Check if mineral dataset and read in groups (only ds/loc for minunc)
@@ -85,7 +93,9 @@ def emit_xarray(filepath: str, ortho: bool = False, qmask=None, unpacked_bmask=N
     if wvl:
         coords = {**coords, **wvl.variables}
 
+    # create xarray dataset with coordinates
     out_xr = xr.Dataset(data_vars=data_vars, coords=coords, attrs=ds.attrs)
+    # set granule ID attribute
     out_xr.attrs["granule_id"] = granule_id
 
     if band := product_band_map.get(
@@ -97,15 +107,18 @@ def emit_xarray(filepath: str, ortho: bool = False, qmask=None, unpacked_bmask=N
         else:
             out_xr = out_xr.swap_dims({"bands": band})
 
-    # Apply Quality and Band Masks, set fill values to NaN
+    # for each data layer, apply quality masks and set fill values to NaN
     for var in list(ds.data_vars):
         if qmask is not None:
             out_xr[var].data[qmask == 1] = -9999
         if unpacked_bmask is not None:
             out_xr[var].data[unpacked_bmask == 1] = -9999
 
+    # orthorectify the swath cube if the ortho flag is set
     if ortho is True:
-        out_xr = ortho_xr(out_xr)
+        # orthorectify the swath cube to a grid cube
+        out_xr = ortho_xr(out_xr, fill_value=fill_value)
+        # set `Orthorectified` attribute to True
         out_xr.attrs["Orthorectified"] = "True"
 
     return out_xr
