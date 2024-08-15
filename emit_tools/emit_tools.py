@@ -26,3 +26,6 @@ from .is_adjacent import is_adjacent
 from .merge_emit import merge_emit
 from .ortho_browse import ortho_browse
 from .emit_xarray import emit_xarray
+from .emit_swath_xarray import emit_swath_xarray
+from .emit_ortho_xarray import emit_ortho_xarray
+from .emit_ortho_raster import emit_ortho_raster
