@@ -29,3 +29,4 @@ from .emit_xarray import emit_xarray
 from .emit_swath_xarray import emit_swath_xarray
 from .emit_ortho_xarray import emit_ortho_xarray
 from .emit_ortho_raster import emit_ortho_raster
+from .generate_CMR_daterange_string import generate_CMR_daterange_string
