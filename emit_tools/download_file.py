@@ -48,18 +48,18 @@ def download_file(
     """
     attempts = 0  # Initialize the number of attempts to zero
 
-    filename = expanduser(filename)  # Expand the user's home directory in the filename
+    # filename = expanduser(filename)  # Expand the user's home directory in the filename
 
     # Loop until the maximum number of attempts is reached
     while attempts < retries:
         try:
             # Check if the file already exists and is zero in size
-            if exists(filename) and getsize(filename) == 0:
+            if exists(expanduser(filename)) and getsize(expanduser(filename)) == 0:
                 logger.warning(f"Removing zero-size corrupted file: {filename}")
-                os.remove(filename)  # Remove the corrupted file
+                os.remove(expanduser(filename))  # Remove the corrupted file
 
             # If the file already exists and is valid, log and return its name
-            if exists(filename):
+            if exists(expanduser(filename)):
                 logger.info(f"File already downloaded: {cl.file(filename)}")
                 return filename
 
@@ -72,7 +72,7 @@ def download_file(
             partial_filename = f"{filename}.download"
             # Construct the wget command with netrc support for authentication
             command = [
-                'wget', '-c', '--netrc', '-O', partial_filename, URL
+                'wget', '-c', '--netrc', '-O', expanduser(filename), URL
             ]
 
             # Start a timer to measure the download duration
@@ -94,10 +94,10 @@ def download_file(
                 raise DownloadFailed(f"Failed to download URL: {URL}, attempt {attempts + 1}")
 
             # Move the partial file to the final filename
-            move(partial_filename, filename)
+            move(expanduser(partial_filename), expanduser(filename))
 
             # Confirm that the final file exists
-            if not exists(filename):
+            if not exists(expanduser(filename)):
                 raise DownloadFailed(f"Failed to download file: {filename}, attempt {attempts + 1}")
 
             return filename  # Return the path of the successfully downloaded file
