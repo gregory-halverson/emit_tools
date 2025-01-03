@@ -10,16 +10,16 @@ from rasters import RasterGeometry
 from .constants import *
 from .search_EMIT_CMR import search_EMIT_CMR
 
-def search_EMIT_L2A_reflectance(
+def search_EMIT_L2B_carbon(
         start_date: Union[date, str], 
         end_date: Union[date, str], 
         target_area: Union[Polygon, RasterGeometry],
-        concept_ID: str = EMIT_L2A_REFLECTANCE_CONCEPT_ID,
+        concept_ID: str = EMIT_L2B_CARBON_CONCEPT_ID,
         granule_search_URL: str = CMR_GRANULE_SEARCH_URL,
         page_num = PAGE_NUM,
         page_size = PAGE_SIZE) -> gpd.GeoDataFrame:
     """
-    Search for EMIT L2A reflectance data within a specified date range and target area.
+    Search for EMIT L2B carbon dioxide data within a specified date range and target area.
 
     Parameters:
     start_date (Union[date, str]): The start date of the search range.

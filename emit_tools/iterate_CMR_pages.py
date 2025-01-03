@@ -1,3 +1,4 @@
+from typing import List, Optional
 import pandas as pd
 import requests
 
@@ -9,8 +10,8 @@ def iterate_CMR_pages(
         temporal_search_string: str,
         page_size: int,
         granule_search_URL: str,
-        geojson: dict
-    ) -> pd.DataFrame:
+        geojson: dict,
+        allowed_extensions: Optional[List[str]] = None) -> pd.DataFrame:
     """
     Iterates through pages of CMR (Common Metadata Repository) search results and compiles them into a DataFrame.
 
@@ -41,7 +42,11 @@ def iterate_CMR_pages(
         )
 
         # Send a POST request to the granule search URL with the CMR parameters and GeoJSON file
-        response = requests.post(granule_search_URL, data=CMR_parameters, files=geojson)
+        response = requests.post(
+            granule_search_URL, 
+            data=CMR_parameters, 
+            files=geojson
+        )
 
         # Parse the JSON response to get the list of granules
         granule_list_JSON = response.json()['feed']['entry']
@@ -51,7 +56,10 @@ def iterate_CMR_pages(
             break
 
         # Extract granules into a DataFrame
-        extracted_granules_df = extract_granules_from_CMR_JSON(granule_list_JSON)
+        extracted_granules_df = extract_granules_from_CMR_JSON(
+            granule_list_JSON=granule_list_JSON,
+            allowed_extensions=allowed_extensions
+        )
 
         # Concatenate the extracted granules DataFrame with the main DataFrame
         df = pd.concat([df, extracted_granules_df])

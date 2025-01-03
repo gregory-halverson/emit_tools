@@ -1,18 +1,19 @@
-from emit_tools.classify_file_type import classify_file_type
-from emit_tools.constants import CMR_GRANULE_SEARCH_URL, PAGE_NUM
-from emit_tools.generate_CMR_daterange_string import generate_CMR_daterange_string
-from emit_tools.iterate_CMR_pages import iterate_CMR_pages
-from emit_tools.constants import PAGE_SIZE
-
-
+from typing import Union, Optional, List
+from os.path import splitext
+from datetime import date
 from dateutil import parser
+
 from shapely.geometry import Polygon
 from shapely.geometry.polygon import orient
+import geopandas as gpd
 
+import rasters as rt
+from rasters import RasterGeometry
 
-from datetime import date
-from os.path import splitext
-
+from .constants import *
+from .classify_file_type import classify_file_type
+from .generate_CMR_daterange_string import generate_CMR_daterange_string
+from .iterate_CMR_pages import iterate_CMR_pages
 
 def search_EMIT_CMR(
         start_date: Union[date, str],
@@ -21,7 +22,8 @@ def search_EMIT_CMR(
         concept_ID: str,
         granule_search_URL: str = CMR_GRANULE_SEARCH_URL,
         page_num = PAGE_NUM,
-        page_size = PAGE_SIZE) -> gpd.GeoDataFrame:
+        page_size = PAGE_SIZE,
+        allowed_extensions: Optional[List[str]] = None) -> gpd.GeoDataFrame:
     """
     Search for EMIT data within a specified date range and target area.
 
@@ -60,7 +62,8 @@ def search_EMIT_CMR(
         temporal_search_string=temporal_search_string,
         page_size=page_size,
         granule_search_URL=granule_search_URL,
-        geojson=geojson
+        geojson=geojson,
+        allowed_extensions=allowed_extensions
     )
 
     # Drop granules with empty geometry, if any exist
@@ -76,7 +79,7 @@ def search_EMIT_CMR(
     df.insert(len(df.columns) - 1, "level", df.filename.apply(lambda filename: splitext(filename)[0].split("_")[1]))
     df.insert(len(df.columns) - 1, "datetime_UTC", df.filename.apply(lambda filename: parser.parse(splitext(filename)[0].split("_")[4])))
     df.insert(len(df.columns) - 1, "orbit", df.filename.apply(lambda filename: int(splitext(filename)[0].split("_")[5])))
-    df.insert(len(df.columns) - 1, "scene", df.filename.apply(lambda filename: int(splitext(filename)[0].split("_")[6])))
+    df.insert(len(df.columns) - 1, "scene", df.filename.apply(lambda filename: int(splitext(filename)[0].split("_")[6].split(".")[0])))
     df.insert(len(df.columns) - 1, "collection", df.filename.apply(lambda filename: int(splitext(filename)[0].split("_")[3])))
     df.insert(len(df.columns) - 1, "type", df.filename.apply(lambda filename: classify_file_type(filename)))
 

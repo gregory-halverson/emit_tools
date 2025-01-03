@@ -26,7 +26,9 @@ def download_file(
         URL: str, 
         filename: str, 
         retries: int = DEFAULT_DOWNLOAD_RETRIES, 
-        wait_seconds: int = DEFAULT_DOWNLOAD_WAIT_SECONDS) -> Optional[str]:
+        wait_seconds: int = DEFAULT_DOWNLOAD_WAIT_SECONDS,
+        capture_output: bool = True,
+        show_command: bool = False) -> Optional[str]:
     """
     Download a file from a specified URL using wget, with support for retries and logging.
 
@@ -75,10 +77,13 @@ def download_file(
                 'wget', '-c', '--netrc', '-O', expanduser(filename), URL
             ]
 
+            if show_command:
+                logger.info(" ".join(command))  # Log the wget command
+
             # Start a timer to measure the download duration
             timer = Timer()
             # Execute the wget command and capture output
-            result = subprocess.run(command, capture_output=True, text=True)
+            result = subprocess.run(command, capture_output=capture_output, text=True)
 
             # Log the download completion time
             logger.info(f"Completed download in {cl.time(timer)} seconds: {cl.file(filename)}")
